@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{parent()}}Profil{% endblock %}
+
+{% block body %}
+
+
+
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 card ">
+        <h1  class="text-center small"> Profil</h1>
+        <h1 class=" text-center large"> Mon compte </h1>
+        <div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-8">
+        <h5 class="card-title">{{app.user.nom}}</h5>
+        <p class="card-text">{{app.user.prenom}}</p>
+        <p class="card-text">{{app.user.email}}</p>
+        <p class="card-text">{{app.user.adresse}}</p>
+        <p class="card-text">{{app.user.cp}}</p>
+        
+        {% if is_granted('ROLE_ADMIN')%}  
+             <h3 class="card-text">ADMIN</h3>
+        {% elseif is_granted('ROLE_REDACTEUR')%}
+             <h3 class="card-text">REDACTEUR</h3>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}
