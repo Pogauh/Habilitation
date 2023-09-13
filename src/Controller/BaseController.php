@@ -12,9 +12,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 
+use Symfony\Component\Mime\Email;
+
 use App\Form\UserType;
 use App\Entity\User;
 use App\Form\UserRoleType;
+use App\entity\Contact;
+use App\Form\ContactType;
+
 
 
 
@@ -31,26 +36,8 @@ class BaseController extends AbstractController
     }
 
     #[Route('/profil', name: 'profil')]
-    public function contact(Request $request, EntityManagerInterface $entityManagerInterface): Response
+    public function profil(Request $request, EntityManagerInterface $entityManagerInterface): Response
     {
-        
-        
-
-        if($request->isMethod('POST')){
-            $form->handleRequest($request);
-            if ($form->isSubmitted()&&$form->isValid()){   
-                
-
-                $contact->setDateEnvoi(new \Datetime());
-                $entityManagerInterface->persist($contact);
-                $entityManagerInterface->flush();
-              
-                $this->addFlash('notice','Message envoyé');
-                //return $this->redirectToRoute('contact');
-                
-            }
-        }
-
         return $this->render('base/profil.html.twig');
    
     }
@@ -82,20 +69,20 @@ class BaseController extends AbstractController
 
 
     #[Route('/editIsVerified/{id}', name: 'editIsVerified')]
-public function editIsVerified(Request $request, EntityManagerInterface $entityManagerInterface): Response
-{
-    $id = $request->get('id');
-    $repoUser = $entityManagerInterface->getRepository(User::class);
-    $user = $repoUser->find($id);
+    public function editIsVerified(Request $request, EntityManagerInterface $entityManagerInterface): Response
+    {
+        $id = $request->get('id');
+        $repoUser = $entityManagerInterface->getRepository(User::class);
+        $user = $repoUser->find($id);
     
-    $user->setIsVerified(true); 
+        $user->setIsVerified(true); 
     
-    $entityManagerInterface->flush();
+        $entityManagerInterface->flush();
     
-    $this->addFlash('notice', 'Modifications effectuées');
+        $this->addFlash('notice', 'Modifications effectuées');
 
-    return $this->redirectToRoute('liste-user');
-}
+        return $this->redirectToRoute('liste-user');
+    }
 
 
     #[Route('/admin/editUser/{id}', name: 'editUser')]
@@ -119,6 +106,30 @@ public function editIsVerified(Request $request, EntityManagerInterface $entityM
      ]);
     }
 
+    #[Route('/contact', name: 'contact')]
+    public function contact(Request $request, MailerInterface $mailer): Response
+    {
+        $form = $this->createForm(ContactType::class);
 
-
+        if($request->isMethod('POST')){
+            $form->handleRequest($request);
+            if ($form->isSubmitted()&&$form->isValid()){   
+                $email = (new TemplatedEmail())
+                ->from($form->get('email')->getData())
+                ->to('ultrabaga@hotmail.com')
+                ->subject($form->get('sujet')->getData())
+                ->htmlTemplate('base/email.html.twig')
+                ->context([
+                    'nom'=> $form->get('email')->getData(),
+                    'sujet'=> $form->get('sujet')->getData(),
+                    'message'=> $form->get('message')->getData()
+                ]);
+              
+                $mailer->send($email);
+                $this->addFlash('notice','Message envoyé');
+            }
+        }
+        return $this->render('base/contact.html.twig', [
+            'form' => $form ->createview()
+     ]);    }
 }
